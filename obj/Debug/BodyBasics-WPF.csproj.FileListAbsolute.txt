@@ -31,3 +31,15 @@ C:\Users\Jesús\Documents\Práctica 1 NPI\obj\Debug\BodyBasics-WPF.csproj.Genera
 C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\bin\AnyCPU\Debug\BodyBasics-WPF.exe.config
 C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\obj\Debug\BodyBasics-WPF.exe
 C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\obj\Debug\BodyBasics-WPF.pdb
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\obj\Debug\BodyBasics-WPF.csprojResolveAssemblyReference.cache
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\obj\Debug\MainWindow.baml
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\obj\Debug\MainWindow.g.cs
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\obj\Debug\App.g.cs
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\obj\Debug\BodyBasics-WPF_MarkupCompile.cache
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\obj\Debug\BodyBasics-WPF.g.resources
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\obj\Debug\Microsoft.Samples.Kinect.BodyBasics.Properties.Resources.resources
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\obj\Debug\BodyBasics-WPF.csproj.GenerateResource.Cache
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\bin\AnyCPU\Debug\BodyBasics-WPF.exe
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\bin\AnyCPU\Debug\BodyBasics-WPF.pdb
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\bin\AnyCPU\Debug\Microsoft.Kinect.dll
+C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\bin\AnyCPU\Debug\Microsoft.Kinect.xml

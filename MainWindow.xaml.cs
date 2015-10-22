@@ -63,12 +63,12 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         private readonly Brush trackedJointBrush = new SolidColorBrush(Color.FromArgb(255, 68, 192, 68));
 
         /// <summary>
-        /// Brush used for drawing joints that are currently inferred
+        /// Brush/"Cepillo" utilizado para dibujar los joints de los huesos inferidos.
         /// </summary>        
         private readonly Brush inferredJointBrush = Brushes.Yellow;
 
         /// <summary>
-        /// Pen used for drawing bones that are currently inferred
+        /// Pen/"Lápiz" utilizado para dibujar huesos (bones) que son inferidos
         /// </summary>        
         private readonly Pen inferredBonePen = new Pen(Brushes.Gray, 1);
 
@@ -130,8 +130,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
         /// </summary>
-        public MainWindow()
-        {
+        public MainWindow(){
             // Console Message
           
             // KinectSensor es una variable privada definida en la linea 88
@@ -242,22 +241,26 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
 
         /// <summary>
-        /// Gets or sets the current status text to display
+        /// Obtiene o cambia el texto de estado a mostrar.
+        /// Gets or sets the current status text to display.
         /// </summary>
         public string StatusText
         {
+            //Obtener
             get
             {
                 return this.statusText;
             }
 
+            //Establecer
             set
             {
                 if (this.statusText != value)
                 {
                     this.statusText = value;
 
-                    // notify any bound elements that the text has changed
+                    // Notifica cualquier conjunto de elementos a los que se les ha cambiado el texto.
+                    // notify any bound elements that the text has changed.
                     if (this.PropertyChanged != null)
                     {
                         this.PropertyChanged(this, new PropertyChangedEventArgs("StatusText"));
@@ -267,7 +270,8 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
 
         /// <summary>
-        /// Execute start up tasks
+        /// Ejecuta el comienzo de las tareas.
+        /// Execute start up tasks.
         /// </summary>
         /// <param name="sender">object sending the event</param>
         /// <param name="e">event arguments</param>
@@ -280,7 +284,8 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
 
         /// <summary>
-        /// Execute shutdown tasks
+        /// Ejecuta el cierre de tareas.
+        /// Execute shutdown tasks.
         /// </summary>
         /// <param name="sender">object sending the event</param>
         /// <param name="e">event arguments</param>
@@ -301,7 +306,8 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
 
         /// <summary>
-        /// Handles the body frame data arriving from the sensor
+        /// Maneja los datos de frames del cuerpo que llegan del sensor.
+        /// Handles the body frame data arriving from the sensor.
         /// </summary>
         /// <param name="sender">object sending the event</param>
         /// <param name="e">event arguments</param>
@@ -309,46 +315,62 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         {
             bool dataReceived = false;
 
-            using (BodyFrame bodyFrame = e.FrameReference.AcquireFrame())
-            {
+            
+            using (BodyFrame bodyFrame = e.FrameReference.AcquireFrame()){
+
                 if (bodyFrame != null)
                 {
+                    //Bodies es el array de cuerpo definido arriba.
                     if (this.bodies == null)
                     {
+                        //Si no está definido el array creamos uno con el número de cuerpos que detectemos.
                         this.bodies = new Body[bodyFrame.BodyCount];
                     }
 
                     // The first time GetAndRefreshBodyData is called, Kinect will allocate each Body in the array.
                     // As long as those body objects are not disposed and not set to null in the array,
                     // those body objects will be re-used.
+
+                    // La primera vez que se llama a GetAndRefreshBodyData, Kinect asigna cada cuerpo en el array.
+                    // Mientras estos objetos de body no esten establecidos como nulo en el array, estos serán
+                    // reutilizados.
                     bodyFrame.GetAndRefreshBodyData(this.bodies);
                     dataReceived = true;
+
                 }
             }
 
-            if (dataReceived)
-            {
-                using (DrawingContext dc = this.drawingGroup.Open())
-                {
-                    // Draw a transparent background to set the render size
-                    dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+            if (dataReceived){
 
+
+                using (DrawingContext dc = this.drawingGroup.Open()){
+
+                    
+
+                    // Dibuja un fondo transparente para poner el tamaño de renderizado.
+                    // Draw a transparent background to set the render size
+                    dc.DrawRectangle(Brushes.PaleTurquoise, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                   
                     int penIndex = 0;
-                    foreach (Body body in this.bodies)
-                    {
+                    foreach (Body body in this.bodies){
+
                         Pen drawPen = this.bodyColors[penIndex++];
 
-                        if (body.IsTracked)
-                        {
+                        if (body.IsTracked){
+
                             this.DrawClippedEdges(body, dc);
 
                             IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
 
+                            // Convierte los puntos "joints" a espacio de profundidad.
                             // convert the joint points to depth (display) space
                             Dictionary<JointType, Point> jointPoints = new Dictionary<JointType, Point>();
 
                             foreach (JointType jointType in joints.Keys)
                             {
+                                // A veces la profundidad(Z) de un joint inferido puede mostrarse negativa.
+                                // 
+
                                 // sometimes the depth(Z) of an inferred joint may show as negative
                                 // clamp down to 0.1f to prevent coordinatemapper from returning (-Infinity, -Infinity)
                                 CameraSpacePoint position = joints[jointType].Position;
@@ -362,12 +384,13 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                             }
 
                             this.DrawBody(joints, jointPoints, dc, drawPen);
-
+                            
                             this.DrawHand(body.HandLeftState, jointPoints[JointType.HandLeft], dc);
                             this.DrawHand(body.HandRightState, jointPoints[JointType.HandRight], dc);
                         }
                     }
 
+                    // Previene dibujar fuera de la zona de renderizado.
                     // prevent drawing outside of our render area
                     this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
                 }
@@ -375,7 +398,8 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
 
         /// <summary>
-        /// Draws a body
+        /// Dibuja un cuerpo.
+        /// Draws a body.
         /// </summary>
         /// <param name="joints">joints to draw</param>
         /// <param name="jointPoints">translated positions of joints to draw</param>
@@ -383,15 +407,16 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         /// <param name="drawingPen">specifies color to draw a specific body</param>
         private void DrawBody(IReadOnlyDictionary<JointType, Joint> joints, IDictionary<JointType, Point> jointPoints, DrawingContext drawingContext, Pen drawingPen)
         {
-            // Draw the bones
+            // Draw the bones / Dibuja los huesos
             foreach (var bone in this.bones)
             {
                 this.DrawBone(joints, jointPoints, bone.Item1, bone.Item2, drawingContext, drawingPen);
             }
 
-            // Draw the joints
-            foreach (JointType jointType in joints.Keys)
-            {
+            // Dibuja los joints.
+            // Draw the joints.
+            foreach (JointType jointType in joints.Keys){
+
                 Brush drawBrush = null;
 
                 TrackingState trackingState = joints[jointType].TrackingState;
@@ -413,7 +438,8 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
 
         /// <summary>
-        /// Draws one bone of a body (joint to joint)
+        /// Dibuja un hueso del cuerpo (joint a joint).
+        /// Draws one bone of a body (joint to joint).
         /// </summary>
         /// <param name="joints">joints to draw</param>
         /// <param name="jointPoints">translated positions of joints to draw</param>
@@ -421,12 +447,13 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         /// <param name="jointType1">second joint of bone to draw</param>
         /// <param name="drawingContext">drawing context to draw to</param>
         /// /// <param name="drawingPen">specifies color to draw a specific bone</param>
-        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, IDictionary<JointType, Point> jointPoints, JointType jointType0, JointType jointType1, DrawingContext drawingContext, Pen drawingPen)
-        {
+        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, IDictionary<JointType, Point> jointPoints, JointType jointType0, JointType jointType1, DrawingContext drawingContext, Pen drawingPen){
+
             Joint joint0 = joints[jointType0];
             Joint joint1 = joints[jointType1];
 
-            // If we can't find either of these joints, exit
+            // Si no se pueden encontrar los joints, se sale.
+            // If we can't find either of these joints, exit.
             if (joint0.TrackingState == TrackingState.NotTracked ||
                 joint1.TrackingState == TrackingState.NotTracked)
             {
@@ -434,6 +461,9 @@ namespace Microsoft.Samples.Kinect.BodyBasics
             }
 
             // We assume all drawn bones are inferred unless BOTH joints are tracked
+
+            // Asumimos que todo los huesos dibujados son inferidos a no ser que ambas
+            // joints hayan sido trackeados. 
             Pen drawPen = this.inferredBonePen;
             if ((joint0.TrackingState == TrackingState.Tracked) && (joint1.TrackingState == TrackingState.Tracked))
             {
@@ -444,6 +474,8 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
 
         /// <summary>
+        /// Dibuja un simbolo para la mano si esta está trackeada: circulo rojo = cerrado, circulo verde = abierto,
+        /// circulo azul = lasso.
         /// Draws a hand symbol if the hand is tracked: red circle = closed, green circle = opened; blue circle = lasso
         /// </summary>
         /// <param name="handState">state of the hand</param>
@@ -453,14 +485,15 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         {
             switch (handState)
             {
+                //Mano cerrada.
                 case HandState.Closed:
                     drawingContext.DrawEllipse(this.handClosedBrush, null, handPosition, HandSize, HandSize);
                     break;
-
+                //Mano abierta
                 case HandState.Open:
                     drawingContext.DrawEllipse(this.handOpenBrush, null, handPosition, HandSize, HandSize);
                     break;
-
+                //Mano "lasso".
                 case HandState.Lasso:
                     drawingContext.DrawEllipse(this.handLassoBrush, null, handPosition, HandSize, HandSize);
                     break;
@@ -468,6 +501,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
 
         /// <summary>
+        /// Dibuja los indicadores que muestran los bordes 
         /// Draws indicators to show which edges are clipping body data
         /// </summary>
         /// <param name="body">body to draw clipping information for</param>
@@ -490,6 +524,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                     Brushes.Red,
                     null,
                     new Rect(0, 0, this.displayWidth, ClipBoundsThickness));
+                drawingContext.DrawRectangle(Brushes.Pink, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
             }
 
             if (clippedEdges.HasFlag(FrameEdges.Left))
@@ -510,15 +545,25 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
 
         /// <summary>
+        /// Maneja los eventos que hacen que los sensores dejen de estar disponibles (Por ej. pausado, cerrado, desenchufado).
         /// Handles the event which the sensor becomes unavailable (E.g. paused, closed, unplugged).
         /// </summary>
         /// <param name="sender">object sending the event</param>
         /// <param name="e">event arguments</param>
         private void Sensor_IsAvailableChanged(object sender, IsAvailableChangedEventArgs e)
         {
-            // on failure, set the status text
+            // Cuando haya error, pone el texto de estado.
+            // on failure, set the status text.
             this.StatusText = this.kinectSensor.IsAvailable ? Properties.Resources.RunningStatusText
                                                             : Properties.Resources.SensorNotAvailableStatusText;
         }
+
+
+        //METODOS AÑADIDOS AL CÓDIGO DEL EJEMPLO
+
+        /// <summary>
+        /// 
+        /// </summary>
+        
     }
 }
