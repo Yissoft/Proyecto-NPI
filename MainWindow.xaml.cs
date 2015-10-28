@@ -127,6 +127,38 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         /// </summary>
         private string statusText = null;
 
+
+        // VARIABLES PROPIAS, NO PERTENECIENTES A LA DEMO.
+
+        /// <summary>
+        /// Coordenadas (X,Y) de los joints
+        /// </summary>
+        Dictionary<JointType, Point> jointPoints = new Dictionary<JointType, Point>();
+
+        /// <summary>
+        /// Struct para almacenar y utilizar de forma más comoda las coordenadas de los joints
+        /// </summary>
+        public struct BodyPartCoords
+        {
+            public double x, y, z;
+
+            public BodyPartCoords(double x_n, double y_n, double z_n)
+            {
+                this.x = x_n;
+                this.y = y_n;
+                this.z = z_n;
+            }
+        }
+
+        /// <summary>
+        /// Variables para saber cuando hay contacto entre joints 
+        /// </summary>
+        private bool RHand_Head = false;
+        private bool LHand_Head = false;
+        private bool RHand_Hip = false;
+        private bool LHand_Hip = false;
+        private bool RHand_LHand = false;
+
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
         /// </summary>
@@ -339,17 +371,16 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
                 }
             }
-
+    
             if (dataReceived){
 
 
                 using (DrawingContext dc = this.drawingGroup.Open()){
 
-                    
-
+                    dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
                     // Dibuja un fondo transparente para poner el tamaño de renderizado.
                     // Draw a transparent background to set the render size
-                    dc.DrawRectangle(Brushes.PaleTurquoise, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                    //dc.DrawRectangle(Brushes.PaleTurquoise, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
                    
                     int penIndex = 0;
                     foreach (Body body in this.bodies){
@@ -364,7 +395,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
                             // Convierte los puntos "joints" a espacio de profundidad.
                             // convert the joint points to depth (display) space
-                            Dictionary<JointType, Point> jointPoints = new Dictionary<JointType, Point>();
+                            
 
                             foreach (JointType jointType in joints.Keys)
                             {
@@ -384,9 +415,17 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                             }
 
                             this.DrawBody(joints, jointPoints, dc, drawPen);
-                            
                             this.DrawHand(body.HandLeftState, jointPoints[JointType.HandLeft], dc);
                             this.DrawHand(body.HandRightState, jointPoints[JointType.HandRight], dc);
+
+                            if (Postura1())
+                            {
+                                dc.DrawEllipse(Brushes.Blue, null, jointPoints[JointType.HandRight], 20, 20);
+                            }
+                            if (RightHandOnHead())
+                            {
+                                dc.DrawEllipse(Brushes.Blue, null, jointPoints[JointType.HandLeft], 20, 20);
+                            }
                         }
                     }
 
@@ -482,6 +521,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         /// <param name="handPosition">position of the hand</param>
         /// <param name="drawingContext">drawing context to draw to</param>
         private void DrawHand(HandState handState, Point handPosition, DrawingContext drawingContext)
+           // this.DrawHand(body.HandLeftState, jointPoints[JointType.HandLeft], dc);
         {
             switch (handState)
             {
@@ -524,7 +564,6 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                     Brushes.Red,
                     null,
                     new Rect(0, 0, this.displayWidth, ClipBoundsThickness));
-                drawingContext.DrawRectangle(Brushes.Pink, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
             }
 
             if (clippedEdges.HasFlag(FrameEdges.Left))
@@ -562,8 +601,143 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         //METODOS AÑADIDOS AL CÓDIGO DEL EJEMPLO
 
         /// <summary>
-        /// 
+        /// Método que devuelve true si la mano derecha esta tocando la cabeza y false en caso contrario.
         /// </summary>
-        
+        private bool RightHandOnHead()
+        {
+            double distance=0;
+            BodyPartCoords RHand = new BodyPartCoords(jointPoints[JointType.HandRight].X, jointPoints[JointType.HandRight].Y,0.0);
+            BodyPartCoords Head = new BodyPartCoords(jointPoints[JointType.Head].X, jointPoints[JointType.Head].Y, 0.0);
+
+            distance = (RHand.x - Head.x) + (RHand.y - Head.y);
+            if (Math.Abs(distance) > 0.25f)
+                return false;
+
+            else 
+                return true;
+        }
+
+        /// <summary>
+        /// Método que devuelve true si la mano izquierda esta tocando la cabeza y false en caso contrario.
+        /// </summary>
+        private bool LeftHandOnHead()
+        {
+            double distance = 0;
+            BodyPartCoords LHand = new BodyPartCoords(jointPoints[JointType.HandLeft].X, jointPoints[JointType.HandLeft].Y, 0.0);
+            BodyPartCoords Head = new BodyPartCoords(jointPoints[JointType.Head].X, jointPoints[JointType.Head].Y, 0.0);
+
+            distance = (LHand.x - Head.x) + (LHand.y - Head.y);
+            if (Math.Abs(distance) > 0.25f)
+                return false;
+
+            else
+                return true;
+        }
+
+        /// <summary>
+        /// Método que devuelve true si la mano izquierda esta tocando la cadera(por la parte izquierda) y false en caso contrario.
+        /// </summary>
+        /// <returns></returns>
+        private bool LeftHandOnHip()
+        {
+            double distance = 0;
+            BodyPartCoords LHand = new BodyPartCoords(jointPoints[JointType.HandLeft].X, jointPoints[JointType.HandLeft].Y, 0.0);
+            BodyPartCoords Hip = new BodyPartCoords(jointPoints[JointType.HipLeft].X, jointPoints[JointType.HipLeft].Y, 0.0);
+
+            distance = (LHand.x - Hip.x) + (LHand.y - Hip.y);
+            if (Math.Abs(distance) > 0.25f)
+                return false;
+
+            else
+                return true;
+        }
+        /// <summary>
+        /// Método que devuelve true si la mano derecha esta tocando la cadera(por la parte derecha) y false en caso contrario.
+        /// </summary>
+        /// <returns></returns>
+        private bool RightHandOnHip()
+        {
+            double distance = 0;
+            BodyPartCoords RHand = new BodyPartCoords(jointPoints[JointType.HandRight].X, jointPoints[JointType.HandRight].Y, 0.0);
+            BodyPartCoords Hip = new BodyPartCoords(jointPoints[JointType.HipRight].X, jointPoints[JointType.HipRight].Y, 0.0);
+
+            distance = (RHand.x - Hip.x) + (RHand.y - Hip.y);
+            if (Math.Abs(distance) > 0.25f)
+                return false;
+
+            else
+                return true;
+        }
+
+
+        /// <summary>
+        /// Función para calcular el vector creado a partir de 2 puntos.
+        /// </summary>
+        /// <param name="p1_x"> Coordenada X del primer punto </param>
+        /// <param name="p1_y"> Coordenada Y del primer punto</param>
+        /// <param name="p2_x"> Coordenada X del segundo punto</param>
+        /// <param name="p2_y"> Coordenada Y del segundo punto</param>
+        /// <returns> Devuelve un vector con posición 0 = X y posición 1 = Y.</returns>
+
+        private double[] GetVector(double p1_x, double p1_y, double p2_x, double p2_y)
+        {
+            double [] vect = new double[2];
+            vect[0] = p1_x - p2_x;
+            vect[1] = p1_y - p2_y;
+            return vect;
+        }
+
+        /// <summary>
+        /// Función que calculo el ángulo entre dos vectores.
+        /// </summary>
+        /// <param name="v1"> Vector 1</param>
+        /// <param name="v2"> Vector 2</param>
+        /// <returns> Angulo entre el vector 1 y el vector 2 </returns>
+        private double GetAngulo(double[] v1, double[] v2)
+        {
+            double dividendo = ((v1[0] * v2[0]) + (v2[1] * v2[1]));
+            double divisor = (Math.Sqrt((v1[0] * v1[0]) + (v1[1] * v1[1]))) * (Math.Sqrt((v2[0] * v2[0]) + (v2[1] * v2[1])));
+
+            return Math.Acos(dividendo / divisor);
+        }
+
+        private bool touchAB(BodyPartCoords A, BodyPartCoords B)
+        {
+            bool tocado = false;
+            double distancia = 0;
+
+            distancia = (A.x - B.x) + (A.y - B.y);
+            if (Math.Abs(distancia) > 0.25f)
+                tocado = false;
+            else
+                tocado = true;
+
+            return tocado;
+        }
+
+        private bool Postura1()
+        {
+            bool detectado = false;
+            //Pierna Izquierda
+            BodyPartCoords LeftFoot = new BodyPartCoords(jointPoints[JointType.FootLeft].X,jointPoints[JointType.FootLeft].Y,0.0);
+            BodyPartCoords LeftHip = new BodyPartCoords(jointPoints[JointType.HipLeft].X,jointPoints[JointType.HipLeft].Y,0.0);
+            BodyPartCoords LeftKnee = new BodyPartCoords(jointPoints[JointType.KneeLeft].X,jointPoints[JointType.KneeLeft].Y,0.0); 
+            BodyPartCoords LeftAnkle = new BodyPartCoords(jointPoints[JointType.AnkleLeft].X,jointPoints[JointType.AnkleLeft].Y,0.0);
+            BodyPartCoords LeftHand = new BodyPartCoords(jointPoints[JointType.HandLeft].X, jointPoints[JointType.HandLeft].Y, 0.0);
+
+            //Piernza Derecha
+            BodyPartCoords RightFoot = new BodyPartCoords(jointPoints[JointType.FootRight].X, jointPoints[JointType.FootRight].Y, 0.0);
+            BodyPartCoords RightHip = new BodyPartCoords(jointPoints[JointType.HipRight].X, jointPoints[JointType.HipRight].Y, 0.0);
+            BodyPartCoords RightKnee = new BodyPartCoords(jointPoints[JointType.KneeRight].X, jointPoints[JointType.KneeRight].Y, 0.0);
+            BodyPartCoords RightAnkle = new BodyPartCoords(jointPoints[JointType.AnkleRight].X, jointPoints[JointType.AnkleRight].Y, 0.0);
+            BodyPartCoords RightHand = new BodyPartCoords(jointPoints[JointType.HandRight].X, jointPoints[JointType.HandRight].Y, 0.0);
+
+            if (touchAB(LeftHand, RightHand))
+            {
+                detectado = true;
+
+            }
+            return detectado;
+        }
     }
 }
