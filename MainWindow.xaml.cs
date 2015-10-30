@@ -403,15 +403,15 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                     {
                         dc.DrawRectangle(dojo1, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
                     }
-                    if (fase2)
+                    else if (fase2)
                     {
                         dc.DrawRectangle(dojo2, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
                     }
-                    if (fase3)
+                    else if (fase3)
                     {
                         dc.DrawRectangle(dojo3, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
                     }
-                    if (fase4)
+                    else if (fase4)
                     {
                         dc.DrawRectangle(dojo4, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
                     }
@@ -468,7 +468,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                             {
                                 dc.DrawEllipse(yinyangBrush, null, posEsferaMusica, 20, 20);
                             }
-                            if (Postura4())
+                            if (PosturaStart())
                             {
                                 tocarYin = true;
                             }
@@ -476,7 +476,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                             {
                                 contadorFramesMusica += 1;
                             }
-                            if (!Postura4())
+                            if (!PosturaStart())
                             {
                                 contadorFramesMusica = 0;
                             }
@@ -811,6 +811,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
             return tocado;
         }
+
         //A debe estar a la altura de B
         private bool sameHeightAB(BodyPartCoords A, BodyPartCoords B)
         {
@@ -822,6 +823,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                 same = true;
             return same;
         }
+
         private bool Postura1()
         {
             bool detectado = false;
@@ -903,7 +905,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
             return detectado;
         }
 
-        private bool Postura4()
+        private bool PosturaStart()
         {
              BodyPartCoords LeftHand = new BodyPartCoords(jointPoints[JointType.HandLeft].X, jointPoints[JointType.HandLeft].Y, 0.0);
              BodyPartCoords Ball = new BodyPartCoords(jointPoints[JointType.Head].X, (jointPoints[JointType.Head].Y) -35.0, 0.0);
