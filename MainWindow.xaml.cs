@@ -16,6 +16,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
     using System.Windows.Media;
     using System.Windows.Media.Imaging;
     using Microsoft.Kinect;             //Nombre de espacios para Kinect
+    using System.Media;
 
     /// <summary>
     /// Interaction logic for MainWindow
@@ -41,21 +42,6 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         /// Constant for clamping Z values of camera space points from being negative
         /// </summary>
         private const float InferredZPositionClamp = 0.1f;
-
-        /// <summary>
-        /// Brush used for drawing hands that are currently tracked as closed
-        /// </summary>
-        private readonly Brush handClosedBrush = new SolidColorBrush(Color.FromArgb(128, 255, 0, 0));
-
-        /// <summary>
-        /// Brush used for drawing hands that are currently tracked as opened
-        /// </summary>
-        private readonly Brush handOpenBrush = new SolidColorBrush(Color.FromArgb(128, 0, 255, 0));
-
-        /// <summary>
-        /// Brush used for drawing hands that are currently tracked as in lasso (pointer) position
-        /// </summary>
-        private readonly Brush handLassoBrush = new SolidColorBrush(Color.FromArgb(128, 0, 0, 255));
 
         /// <summary>
         /// Brush used for drawing joints that are currently tracked
@@ -160,6 +146,42 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         private bool RHand_LHand = false;
 
         /// <summary>
+        /// Variables booleanas que nos permiten saber cuando hemos hecho la postura1 o 2.
+        /// </summary>
+        private bool posturaInicial= false;
+        private bool postura2 = false;
+        private bool tocarYin = false;
+
+        /// <summary>
+        /// Variable para contar el tiempo en que se está en la postura correcta.
+        /// </summary>
+        private int contadorFrames1 = 0;
+        private int contadorFrames2 = 0;
+        private int contadorFramesMusica = 0;
+        
+        /// <summary>
+        /// SoundPlayer gong y kungfu son 2 variables que nos permiten utilizar sonidos en la aplicación.
+        /// </summary>
+        private SoundPlayer gong = new SoundPlayer(@"C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\Music\gong.wav");
+        private SoundPlayer kungfu = new SoundPlayer(@"C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\Music\kung.wav");
+        
+        ImageBrush dojo1 = new ImageBrush(new BitmapImage(new Uri(@"C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\Images\dogo.jpg")));
+        ImageBrush dojo2 = new ImageBrush(new BitmapImage(new Uri(@"C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\Images\dogo2.jpg")));
+        ImageBrush dojo3 = new ImageBrush(new BitmapImage(new Uri(@"C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\Images\dogo3.jpg")));
+        ImageBrush dojo4 = new ImageBrush(new BitmapImage(new Uri(@"C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\Images\dogo4.jpg")));
+        ImageBrush yinyangBrush = new ImageBrush(new BitmapImage(new Uri(@"C:\Users\Jesús\Documents\GitHub\Práctica 1 NPI\Images\yinyang.png")));
+       
+        private bool fase1 = true;
+        private bool fase2 = false;
+        private bool fase3 = false;
+        private bool fase4 = false;
+        private bool PaintStart = true;
+        private bool NowPlaying = false;
+
+        // FIN VARIABLES PROPIAS, NO PERTENECIENTES A LA DEMO.
+
+
+        /// <summary>
         /// Initializes a new instance of the MainWindow class.
         /// </summary>
         public MainWindow(){
@@ -176,7 +198,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
             FrameDescription frameDescription = this.kinectSensor.DepthFrameSource.FrameDescription;
 
             // get size of joint space
-            this.displayWidth = frameDescription.Width;
+            this.displayWidth = frameDescription.Width+150;
             this.displayHeight = frameDescription.Height;
 
             // open the reader for the body frames
@@ -346,9 +368,8 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         private void Reader_FrameArrived(object sender, BodyFrameArrivedEventArgs e)
         {
             bool dataReceived = false;
-
-            
-            using (BodyFrame bodyFrame = e.FrameReference.AcquireFrame()){
+            using (BodyFrame bodyFrame = e.FrameReference.AcquireFrame())
+            {
 
                 if (bodyFrame != null)
                 {
@@ -371,23 +392,43 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
                 }
             }
-    
-            if (dataReceived){
+
+            if (dataReceived)
+            {
 
 
-                using (DrawingContext dc = this.drawingGroup.Open()){
-
-                    dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                using (DrawingContext dc = this.drawingGroup.Open())
+                {
+                    if (fase1)
+                    {
+                        dc.DrawRectangle(dojo1, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                    }
+                    if (fase2)
+                    {
+                        dc.DrawRectangle(dojo2, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                    }
+                    if (fase3)
+                    {
+                        dc.DrawRectangle(dojo3, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                    }
+                    if (fase4)
+                    {
+                        dc.DrawRectangle(dojo4, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                    }
+                    //dc.DrawRectangle(Brushes.Red, null, new Rect(0, this.displayHeight - ClipBoundsThickness, this.displayWidth, ClipBoundsThickness));
+                    //dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
                     // Dibuja un fondo transparente para poner el tamaño de renderizado.
                     // Draw a transparent background to set the render size
                     //dc.DrawRectangle(Brushes.PaleTurquoise, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
-                   
+
                     int penIndex = 0;
-                    foreach (Body body in this.bodies){
+                    foreach (Body body in this.bodies)
+                    {
 
                         Pen drawPen = this.bodyColors[penIndex++];
 
-                        if (body.IsTracked){
+                        if (body.IsTracked)
+                        {
 
                             this.DrawClippedEdges(body, dc);
 
@@ -395,7 +436,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
                             // Convierte los puntos "joints" a espacio de profundidad.
                             // convert the joint points to depth (display) space
-                            
+
 
                             foreach (JointType jointType in joints.Keys)
                             {
@@ -415,23 +456,104 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                             }
 
                             this.DrawBody(joints, jointPoints, dc, drawPen);
-                            this.DrawHand(body.HandLeftState, jointPoints[JointType.HandLeft], dc);
-                            this.DrawHand(body.HandRightState, jointPoints[JointType.HandRight], dc);
 
+                            Point posEsferaMusica = new Point(jointPoints[JointType.Head].X, (jointPoints[JointType.Head].Y) - 35.0);
+
+
+                            // CODIGO PROPIO
+
+
+                            // Dibujado del dojo inicial y al yinyang
+                            if (PaintStart)
+                            {
+                                dc.DrawEllipse(yinyangBrush, null, posEsferaMusica, 20, 20);
+                            }
+                            if (Postura4())
+                            {
+                                tocarYin = true;
+                            }
+                            if (tocarYin)
+                            {
+                                contadorFramesMusica += 1;
+                            }
+                            if (!Postura4())
+                            {
+                                contadorFramesMusica = 0;
+                            }
+                            if (tocarYin)
+                            {
+                                if (!NowPlaying)
+                                {
+                                    NowPlaying = true;
+                                    PaintStart = false;
+                                    kungfu.Play();
+                                    fase1 = false;
+                                    fase2 = true;
+                                }
+                            }
+                            //Comienzo de la primera postura
                             if (Postura1())
                             {
-                                dc.DrawEllipse(Brushes.Blue, null, jointPoints[JointType.HandRight], 20, 20);
+                                posturaInicial = true;
+                            }
+                            else if (!Postura1())
+                            {
+                                posturaInicial = false;
+                                contadorFrames1 = 0;
+                            }
+                            if (posturaInicial)
+                            {
+                                contadorFrames1 += 1;
+                                //dc.DrawEllipse(Brushes.Blue, null, jointPoints[JointType.HandRight], 20, 20);
+                            }
+                            
+                            if (contadorFrames1 >= 40)
+                            {
+                                fase2 = false;
+                                fase3 = true;
+
+                                contadorFrames2 += 1;
+                            }
+                            if (Postura2())
+                            {
+                                postura2 = true;
+                            }
+                            else if (!Postura2())
+                            {
+                                contadorFrames2 = 0;
+                            }
+                            if (postura2)
+                            {
+                                contadorFrames2 += 1;
+                            }
+                           
+                            if (contadorFrames2 >= 40)
+                            {
+                                fase3 = false;
+                                fase4 = true;
                             }
                             if (RightHandOnHead())
                             {
-                                dc.DrawEllipse(Brushes.Blue, null, jointPoints[JointType.HandLeft], 20, 20);
-                            }
-                        }
-                    }
+                                RHand_Head = true;
 
-                    // Previene dibujar fuera de la zona de renderizado.
-                    // prevent drawing outside of our render area
-                    this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                            }
+
+                            if (PosturaFinal())
+                            {
+                                kungfu.Stop();
+                            }
+                            /// FIN 
+                            /// 
+                            /// CAMBIAR DINÁMICAMENTE EL FONDO DE LA VENTAN
+                            /// 
+
+                        }
+
+                        // Previene dibujar fuera de la zona de renderizado.
+                        // prevent drawing outside of our render area
+                        
+                        this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                    }
                 }
             }
         }
@@ -512,33 +634,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
             drawingContext.DrawLine(drawPen, jointPoints[jointType0], jointPoints[jointType1]);
         }
 
-        /// <summary>
-        /// Dibuja un simbolo para la mano si esta está trackeada: circulo rojo = cerrado, circulo verde = abierto,
-        /// circulo azul = lasso.
-        /// Draws a hand symbol if the hand is tracked: red circle = closed, green circle = opened; blue circle = lasso
-        /// </summary>
-        /// <param name="handState">state of the hand</param>
-        /// <param name="handPosition">position of the hand</param>
-        /// <param name="drawingContext">drawing context to draw to</param>
-        private void DrawHand(HandState handState, Point handPosition, DrawingContext drawingContext)
-           // this.DrawHand(body.HandLeftState, jointPoints[JointType.HandLeft], dc);
-        {
-            switch (handState)
-            {
-                //Mano cerrada.
-                case HandState.Closed:
-                    drawingContext.DrawEllipse(this.handClosedBrush, null, handPosition, HandSize, HandSize);
-                    break;
-                //Mano abierta
-                case HandState.Open:
-                    drawingContext.DrawEllipse(this.handOpenBrush, null, handPosition, HandSize, HandSize);
-                    break;
-                //Mano "lasso".
-                case HandState.Lasso:
-                    drawingContext.DrawEllipse(this.handLassoBrush, null, handPosition, HandSize, HandSize);
-                    break;
-            }
-        }
+    
 
         /// <summary>
         /// Dibuja los indicadores que muestran los bordes 
@@ -672,6 +768,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
         /// <summary>
         /// Función para calcular el vector creado a partir de 2 puntos.
+        /// Dados V1 y V2 se obtiene el vector V1V2 (v2.x-v1.x, v2.y-v1.y)
         /// </summary>
         /// <param name="p1_x"> Coordenada X del primer punto </param>
         /// <param name="p1_y"> Coordenada Y del primer punto</param>
@@ -707,37 +804,126 @@ namespace Microsoft.Samples.Kinect.BodyBasics
             double distancia = 0;
 
             distancia = (A.x - B.x) + (A.y - B.y);
-            if (Math.Abs(distancia) > 0.25f)
+            if (Math.Abs(distancia) > 1.20f)
                 tocado = false;
             else
                 tocado = true;
 
             return tocado;
         }
-
+        //A debe estar a la altura de B
+        private bool sameHeightAB(BodyPartCoords A, BodyPartCoords B)
+        {
+            bool same = false;
+            double max, min;
+            max = B.y + 10;
+            min = B.y - 10;
+            if(A.y > min && A.y < max)
+                same = true;
+            return same;
+        }
         private bool Postura1()
         {
             bool detectado = false;
-            //Pierna Izquierda
+            //Partes necesitadas
             BodyPartCoords LeftFoot = new BodyPartCoords(jointPoints[JointType.FootLeft].X,jointPoints[JointType.FootLeft].Y,0.0);
             BodyPartCoords LeftHip = new BodyPartCoords(jointPoints[JointType.HipLeft].X,jointPoints[JointType.HipLeft].Y,0.0);
             BodyPartCoords LeftKnee = new BodyPartCoords(jointPoints[JointType.KneeLeft].X,jointPoints[JointType.KneeLeft].Y,0.0); 
             BodyPartCoords LeftAnkle = new BodyPartCoords(jointPoints[JointType.AnkleLeft].X,jointPoints[JointType.AnkleLeft].Y,0.0);
             BodyPartCoords LeftHand = new BodyPartCoords(jointPoints[JointType.HandLeft].X, jointPoints[JointType.HandLeft].Y, 0.0);
+            BodyPartCoords Hip = new BodyPartCoords(jointPoints[JointType.SpineBase].X,jointPoints[JointType.SpineBase].Y, 0.0);
+            BodyPartCoords LeftElbow = new BodyPartCoords(jointPoints[JointType.ElbowLeft].X,jointPoints[JointType.ElbowLeft].Y,0.0);
+            BodyPartCoords RightElbow = new BodyPartCoords(jointPoints[JointType.ElbowRight].X, jointPoints[JointType.ElbowRight].Y, 0.0);
+            BodyPartCoords MediaEspalda = new BodyPartCoords(jointPoints[JointType.SpineMid].X, jointPoints[JointType.SpineMid].Y - 10, 0.0);
+            //Variables para los ángulos de la pose
+            double rodillaIzq = 0;
+            double brazoIzq = 0;
+            double brazoDer = 0;
 
-            //Piernza Derecha
+            /*
+            //Ángulos
+            //private double GetAngulo(double[] v1, double[] v2)
+            //private double[] GetVector(double p1_x, double p1_y, double p2_x, double p2_y)
+
+            //Vector rodilla-cadera
+            double[] vknee_hip = GetVector(LeftKnee.x, LeftKnee.y, LeftHip.x,LeftHip.y );
+            double[] vknee_ankle = GetVector(LeftKnee.x, LeftKnee.y, LeftAnkle.x, LeftAnkle.y);
+            double knee_hip_ankle_degree = GetAngulo(vknee_hip, vknee_ankle);
+
+            if (knee_hip_ankle_degree > 80 && knee_hip_ankle_degree < 110)
+            //if(knee_hip_ankle_degree == 90)
+                detectado = true;
+        
+            */
+
+            if(sameHeightAB(LeftKnee,Hip) && sameHeightAB(LeftElbow,RightElbow))
+                detectado = true;
+
+            return detectado;
+        }
+
+        private bool Postura2()
+        {
+            bool detectado = false;
+
+            //Partes necesitadas
             BodyPartCoords RightFoot = new BodyPartCoords(jointPoints[JointType.FootRight].X, jointPoints[JointType.FootRight].Y, 0.0);
             BodyPartCoords RightHip = new BodyPartCoords(jointPoints[JointType.HipRight].X, jointPoints[JointType.HipRight].Y, 0.0);
             BodyPartCoords RightKnee = new BodyPartCoords(jointPoints[JointType.KneeRight].X, jointPoints[JointType.KneeRight].Y, 0.0);
             BodyPartCoords RightAnkle = new BodyPartCoords(jointPoints[JointType.AnkleRight].X, jointPoints[JointType.AnkleRight].Y, 0.0);
             BodyPartCoords RightHand = new BodyPartCoords(jointPoints[JointType.HandRight].X, jointPoints[JointType.HandRight].Y, 0.0);
+            BodyPartCoords Hip = new BodyPartCoords(jointPoints[JointType.SpineBase].X,jointPoints[JointType.SpineBase].Y, 0.0);
+            BodyPartCoords RightElbow = new BodyPartCoords(jointPoints[JointType.ElbowRight].X, jointPoints[JointType.ElbowRight].Y, 0.0);
+            BodyPartCoords LeftElbow = new BodyPartCoords(jointPoints[JointType.ElbowLeft].X, jointPoints[JointType.ElbowLeft].Y, 0.0);
+            BodyPartCoords MediaEspalda = new BodyPartCoords(jointPoints[JointType.SpineMid].X, jointPoints[JointType.SpineMid].Y - 10, 0.0);
 
-            if (touchAB(LeftHand, RightHand))
-            {
+            /*
+            //Variables para los ángulos de la pose
+            double rodillaIzq = 0;
+            double brazoIzq = 0;
+            double brazoDer = 0;
+
+            //Ángulos
+            //private double GetAngulo(double[] v1, double[] v2)
+            //private double[] GetVector(double p1_x, double p1_y, double p2_x, double p2_y)
+
+            //Vector rodilla-cadera
+            double[] vknee_hip = GetVector(RightKnee.x, RightKnee.y, RightHip.x,RightHip.y );
+            double[] vknee_ankle = GetVector(RightKnee.x, RightKnee.y, RightAnkle.x, RightAnkle.y);
+            double knee_hip_ankle_degree = GetAngulo(vknee_hip, vknee_ankle);
+
+            if (knee_hip_ankle_degree > 80 && knee_hip_ankle_degree < 110)
+            //if(knee_hip_ankle_degree == 90)
                 detectado = true;
 
-            }
+            */
+            if (sameHeightAB(RightKnee, Hip) && sameHeightAB(LeftElbow, RightElbow))
+                detectado = true;
+
             return detectado;
+        }
+
+        private bool Postura4()
+        {
+             BodyPartCoords LeftHand = new BodyPartCoords(jointPoints[JointType.HandLeft].X, jointPoints[JointType.HandLeft].Y, 0.0);
+             BodyPartCoords Ball = new BodyPartCoords(jointPoints[JointType.Head].X, (jointPoints[JointType.Head].Y) -35.0, 0.0);
+             BodyPartCoords RightHand = new BodyPartCoords(jointPoints[JointType.HandRight].X, jointPoints[JointType.HandRight].Y, 0.0);
+             bool aux1 = false;
+             aux1 = touchAB(LeftHand,Ball);
+             if(!aux1)
+             aux1 = touchAB(RightHand, Ball);
+             return aux1;
+
+        }
+        private bool PosturaFinal()
+        {
+            bool done = false;
+            BodyPartCoords LeftHand = new BodyPartCoords(jointPoints[JointType.HandLeft].X, jointPoints[JointType.HandLeft].Y, 0.0);
+            BodyPartCoords RightHand = new BodyPartCoords(jointPoints[JointType.HandRight].X, jointPoints[JointType.HandRight].Y, 0.0);
+            BodyPartCoords Hip = new BodyPartCoords(jointPoints[JointType.SpineBase].X,jointPoints[JointType.SpineBase].Y, 0.0);
+            if(touchAB(LeftHand,RightHand) && sameHeightAB(RightHand,Hip))
+                done = true;
+            return done;
         }
     }
 }
